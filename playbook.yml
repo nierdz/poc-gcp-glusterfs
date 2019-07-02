@@ -1,0 +1,8 @@
+---
+- name: Replace gluster-3 after crash using gluster-0 as reference node
+  become: true
+  hosts: gluster-0
+  vars:
+    - gluster_new_node: gluster-3
+  roles:
+    - gluster_replace_node
