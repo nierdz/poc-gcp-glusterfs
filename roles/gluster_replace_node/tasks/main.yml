@@ -1,0 +1,23 @@
+---
+#TODO add fail if this role is not limited to one server
+
+- name: Stop glusterd on {{ gluster_new_node }}
+  service:
+    name: glusterd
+    state: stopped
+  delegate_to: "{{ gluster_new_node }}"
+
+- import_tasks: peers.yml
+
+- name: Start glusterd on {{ gluster_new_node }}
+  service:
+    name: glusterd
+    state: started
+  delegate_to: "{{ gluster_new_node }}"
+
+- name: Reset brick
+  command: >
+    gluster volume reset-brick gv0
+    {{ gluster_new_node }}:/data/brick1/gv0
+    start
+  changed_when: false

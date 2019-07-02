@@ -1,0 +1,2 @@
+---
+glusterd_libdir: "/var/lib/glusterd"

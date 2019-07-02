@@ -35,3 +35,12 @@ gsutil versioning set on gs://${GCE_PROJECT}
 terraform init
 terraform apply
 ```
+
+### Loosing one node
+- Try to delete `gluster-3` from GCP dashboard. Delete disk also if you want.
+- Run `terraform apply` to create gluster-3 again
+- To join again gluster-3 in cluster you need to run ansible like this:
+```
+ansible-playbook -u admin -i scripts/gce.py -l gluster-0 playbook.yml
+```
+This will use gluster-0 as reference node

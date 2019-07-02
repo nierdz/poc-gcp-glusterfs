@@ -7,6 +7,7 @@
 apt install -y \
   bash-completion \
   gdebi-core \
+  rsync \
   xfsprogs
 parted /dev/sdb mktable gpt
 parted /dev/sdb mkpart primary xfs 0% 100%

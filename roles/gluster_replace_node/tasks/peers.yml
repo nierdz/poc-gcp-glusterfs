@@ -1,0 +1,67 @@
+---
+- name: Get UUID of old node # noqa 306
+  shell: >
+    gluster peer status |
+    grep -A1 {{ gluster_new_node | mandatory }} |
+    grep -oE "[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}"
+  register: old_node_uuid
+  changed_when: false
+
+- name: Get UUID of donor
+  command: >
+    grep -oE "[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}"
+    "{{ glusterd_libdir }}/glusterd.info"
+  register: master_uuid
+  changed_when: false
+
+- name: Store UUIDs
+  set_fact:
+    old_uuid: "{{ old_node_uuid.stdout }}"
+    master_uuid: "{{ master_uuid.stdout }}"
+
+- name: Edit the new node's gluster.info
+  lineinfile:
+    path: "{{ glusterd_libdir }}/glusterd.info"
+    regexp: '^UUID='
+    line: "UUID={{ old_uuid }}"
+  delegate_to: "{{ gluster_new_node | mandatory }}"
+
+- name: Copy the peer data into /tmp
+  copy:
+    remote_src: true
+    src: "{{ glusterd_libdir }}/peers"
+    dest: /tmp
+
+- name: Delete the peer of the old node
+  file:
+    state: absent
+    path: "/tmp/peers/{{ old_uuid }}"
+
+- name: Fetch old peers
+  synchronize:
+    mode: pull
+    src: /tmp/peers/
+    dest: buffer/
+
+- name: Clean /tmp/peers
+  file:
+    state: absent
+    path: /tmp/peers
+
+- name: Clean {{ glusterd_libdir }}/peers on {{ gluster_new_node }}
+  file:
+    state: absent
+    path: "{{ glusterd_libdir }}/peers/"
+  delegate_to: "{{ gluster_new_node | mandatory }}"
+
+- name: Copy peers to {{ gluster_new_node }}
+  copy:
+    src: "{{ playbook_dir }}/buffer/"
+    dest: "{{ glusterd_libdir }}/peers"
+  delegate_to: "{{ gluster_new_node | mandatory }}"
+
+- name: Clean "{{ playbook_dir }}/buffer/" on localhost
+  file:
+    state: absent
+    path: "{{ playbook_dir }}/buffer/"
+  delegate_to: 127.0.0.1
