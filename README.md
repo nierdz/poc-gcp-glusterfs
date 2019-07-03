@@ -36,6 +36,13 @@ terraform init
 terraform apply
 ```
 
+### Some explanations
+This POC is designed to setup a gluster cluster where all nodes have all the data. Typically, this could be useful for old app used to use NFS shared or more generally shared fylesystem.
+In [startup.sh](scripts/startup.sh) you have everything to setup a 4 nodes cluster. This script is launched everytime a node is booted.
+If you loose one or more node this is where we use `ansible` to replace the failing node. One node is selected as donor, typically, this is the node we run ansible against. The replacing node is setup in a variable named `gluster_new_node`.
+You can find an example of a playbook to replace `gluster-3` using `gluster-0` as a donor [here](playbook.yml)
+Procedure to replace a gluster node with same hostname could be done [here](https://access.redhat.com/documentation/en-us/red_hat_gluster_storage/3/html/administration_guide/sect-replacing_hosts#Replacing_a_Host_Machine_with_the_Same_Hostname)
+
 ### Loosing one node
 
 - Try to delete `gluster-3` from GCP dashboard. Delete disk also if you want.
