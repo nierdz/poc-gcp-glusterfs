@@ -1,5 +1,7 @@
 ---
 #TODO add fail if this role is not limited to one server
+#TODO maybe add run_once to every tasks to avoid a disaster if precedent limitation fails
+#For example, if ignore_errors: true is added at playbook level
 
 - name: Stop glusterd on {{ gluster_new_node }}
   service:
